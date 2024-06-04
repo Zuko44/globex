@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { allContacts } from '../api/api';
+import { allContacts, getContact } from '../api/api';
 import type { Contact } from '../types/index';
 import BaseModal from './BaseModal.vue';
 
@@ -37,6 +37,7 @@ const selectUserHandler = (contact: string) => {
 
 onMounted(() => {
   getContacts();
+  console.log(getContact('Adrienne Mason'));
 });
 </script>
 
