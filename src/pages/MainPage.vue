@@ -6,10 +6,11 @@ import BaseModal from './BaseModal.vue';
 import debounce from 'lodash/debounce';
 
 const contacts = ref<Contact[]>([]);
-const contact = ref<Contact>();
+const contact = ref<Contact[]>([]);
 const simpleFilter = ref<string>('');
 const isModalOpen = ref<boolean>(false);
 const selectedUser = ref<Contact>();
+const arrayWithContacts = ref<Contact[]>([]);
 
 const getContacts = () => {
   allContacts().then((result: any) => {
@@ -22,22 +23,20 @@ const getContacts = () => {
 const filterContacts = debounce(() => {
   getContact(simpleFilter.value).then((result: any) => {
     console.log(result);
-    contact.value = result[0];
+    contact.value = result;
     console.log(contact.value);
   });
   console.log(simpleFilter.value);
 }, 500);
 
 const selectUserHandler = (user: string) => {
-  if (simpleFilter.value.length == 0) {
-    selectedUser.value = contacts.value.find((client) => client.name === user);
-    console.log(selectedUser.value);
-    isModalOpen.value = true;
-  } else {
-    selectedUser.value = contact.value;
-    console.log(selectedUser.value);
-    isModalOpen.value = true;
-  }
+  arrayWithContacts.value =
+    simpleFilter.value.length == 0 ? contacts.value : contact.value;
+  selectedUser.value = arrayWithContacts.value.find(
+    (client: Contact) => client.name === user,
+  );
+  isModalOpen.value = true;
+  console.log(selectedUser.value);
 };
 
 onMounted(() => {
@@ -58,18 +57,20 @@ onMounted(() => {
       <div
         class="contact"
         v-if="simpleFilter.length > 0"
-        @click="selectUserHandler(contact.name)"
+        v-for="user in contact"
+        :key="user.name"
+        @click="selectUserHandler(user.name)"
       >
-        <div class="name">{{ contact.name }}</div>
+        <div class="name">{{ user.name }}</div>
         <div class="contacts_container">
           <div>
             <img class="phone" src="../assets/icons/tel.svg" alt="phone" />{{
-              contact.phone
+              user.phone
             }}
           </div>
           <div>
             <img class="email" src="../assets/icons/email.svg" alt="email" />{{
-              contact.email
+              user.email
             }}
           </div>
         </div>
