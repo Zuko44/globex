@@ -3,9 +3,10 @@ import { ref, onMounted } from 'vue';
 import { allContacts, getContact } from '../api/api';
 import type { Contact } from '../types/index';
 import BaseModal from './BaseModal.vue';
+import debounce from 'lodash/debounce';
 
 const contacts = ref<Contact[]>([]);
-const temporaryContactsStorage = ref<Contact[]>([]);
+const contact = ref<Contact>();
 const simpleFilter = ref<string>('');
 const isModalOpen = ref<boolean>(false);
 const selectedUser = ref<Contact>();
@@ -14,30 +15,34 @@ const getContacts = () => {
   allContacts().then((result: any) => {
     console.log(result);
     contacts.value = result;
-    temporaryContactsStorage.value = result;
     console.log(contacts.value);
   });
 };
 
-const filterProducts = () => {
-  if (simpleFilter.value.length > 1) {
-    contacts.value = contacts.value.filter((contact) =>
-      contact.name.includes(simpleFilter.value),
-    );
-  } else {
-    contacts.value = temporaryContactsStorage.value;
-  }
-};
+const filterContacts = debounce(() => {
+  getContact(simpleFilter.value).then((result: any) => {
+    console.log(result);
+    contact.value = result[0];
+    console.log(contact.value);
+  });
+  console.log(simpleFilter.value);
+}, 500);
 
-const selectUserHandler = (contact: string) => {
-  selectedUser.value = contacts.value.find((user) => user.name === contact);
-  console.log(selectedUser.value);
-  isModalOpen.value = true;
+const selectUserHandler = (user: string) => {
+  if (simpleFilter.value.length == 0) {
+    selectedUser.value = contacts.value.find((client) => client.name === user);
+    console.log(selectedUser.value);
+    isModalOpen.value = true;
+  } else {
+    selectedUser.value = contact.value;
+    console.log(selectedUser.value);
+    isModalOpen.value = true;
+  }
 };
 
 onMounted(() => {
   getContacts();
-  console.log(getContact('Adrienne Mason'));
+  console.log(simpleFilter.value.length);
 });
 </script>
 
@@ -48,9 +53,29 @@ onMounted(() => {
       @switchBaseModal="isModalOpen = false"
       :user="selectedUser"
     />
-    <input type="text" v-model="simpleFilter" @input="filterProducts" />
+    <input type="text" v-model="simpleFilter" @input="filterContacts" />
     <div class="contacts">
       <div
+        class="contact"
+        v-if="simpleFilter.length > 0"
+        @click="selectUserHandler(contact.name)"
+      >
+        <div class="name">{{ contact.name }}</div>
+        <div class="contacts_container">
+          <div>
+            <img class="phone" src="../assets/icons/tel.svg" alt="phone" />{{
+              contact.phone
+            }}
+          </div>
+          <div>
+            <img class="email" src="../assets/icons/email.svg" alt="email" />{{
+              contact.email
+            }}
+          </div>
+        </div>
+      </div>
+      <div
+        v-if="simpleFilter.length == 0"
         class="contact"
         v-for="contact in contacts"
         :key="contact.name"

@@ -4,5 +4,6 @@
       "@/*": ["./src/*"]
     }
   },
+  "types": ["lodash", "node"],
   "exclude": ["node_modules", "dist"]
 }
